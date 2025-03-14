@@ -20,7 +20,7 @@ else:
 # target_metadata = mymodel.Base.metadata
 # target_metadata = None
 
-from sqlmodel import SQLModel
+from app.models import SQLModel
 from app.core.config import settings
 
 target_metadata = SQLModel.metadata
