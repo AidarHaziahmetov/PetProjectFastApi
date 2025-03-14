@@ -1,4 +1,4 @@
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator
 from typing import Annotated
 
 import jwt
@@ -23,8 +23,10 @@ async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSession(async_engine) as session:
         yield session
 
+
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 AsyncSessionDep = Annotated[AsyncSession, Depends(get_async_db)]
+
 
 async def get_current_user_async(session: AsyncSessionDep, token: TokenDep) -> User:
     try:
@@ -47,15 +49,10 @@ async def get_current_user_async(session: AsyncSessionDep, token: TokenDep) -> U
 
 CurrentUserAsync = Annotated[User, Depends(get_current_user_async)]
 
+
 async def get_current_active_superuser(current_user: CurrentUserAsync) -> User:
     if not current_user.is_superuser:
         raise HTTPException(
             status_code=403, detail="The user doesn't have enough privileges"
         )
     return current_user
-
-
-
-
-
-

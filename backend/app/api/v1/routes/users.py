@@ -16,6 +16,12 @@ from app.crud.user import (
     get_user_by_email,
     update_user,
 )
+from app.crud.user import (
+    read_user_by_id as read_user_by_id_crud,
+)
+from app.crud.user import (
+    read_users as read_users_crud,
+)
 from app.models.user import User
 from app.schemas.common import ApiMessage
 from app.schemas.user import (
@@ -41,12 +47,9 @@ async def read_users(session: AsyncSessionDep, skip: int = 0, limit: int = 100) 
     """
     Retrieve users.
     """
+    users = await read_users_crud(session=session, skip=skip, limit=limit)
     count_statement = select(func.count()).select_from(User)
     count = await session.scalar(count_statement)
-
-    statement = select(User).offset(skip).limit(limit)
-    result = await session.exec(statement)
-    users = result.scalars().all()
     users_list = [UserPublic.model_validate(user) for user in users]
     return UsersPublic(data=users_list, count=count)
 
@@ -166,7 +169,7 @@ async def read_user_by_id(
     """
     Get a specific user by id.
     """
-    user = await session.get(User, user_id)
+    user = await read_user_by_id_crud(session=session, user_id=user_id)
     if user == current_user:
         return user
     if not current_user.is_superuser:

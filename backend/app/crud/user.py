@@ -1,3 +1,4 @@
+import uuid
 from typing import Any
 
 from sqlmodel import select
@@ -54,3 +55,17 @@ async def authenticate(
     if not verify_password(password, db_user.hashed_password):
         return None
     return db_user
+
+
+async def read_users(
+    *, session: AsyncSession, skip: int = 0, limit: int = 100
+) -> list[User]:
+    statement = select(User).offset(skip).limit(limit)
+    result = await session.exec(statement)
+    return list(result.all())
+
+
+async def read_user_by_id(*, session: AsyncSession, user_id: uuid.UUID) -> User | None:
+    statement = select(User).where(User.id == user_id)
+    result = await session.exec(statement)
+    return result.first()

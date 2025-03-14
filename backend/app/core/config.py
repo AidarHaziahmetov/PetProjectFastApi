@@ -10,7 +10,6 @@ from pydantic import (
     computed_field,
     model_validator,
 )
-from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing_extensions import Self
 
@@ -59,13 +58,13 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
-        return MultiHostUrl.build(
+        return PostgresDsn.build(
             scheme="postgresql+asyncpg",
             username=self.POSTGRES_USER,
             password=self.POSTGRES_PASSWORD,
             host=self.POSTGRES_SERVER,
             port=self.POSTGRES_PORT,
-            path=self.POSTGRES_DB,
+            path=f"/{self.POSTGRES_DB}",
         )
 
     SMTP_TLS: bool = True
@@ -105,7 +104,9 @@ class Settings(BaseSettings):
     @property
     def CELERY_BROKER_URL(self) -> str:
         if self.REDIS_PASSWORD:
-            return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/0"
+            return (
+                f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/0"
+            )
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
 
     @computed_field  # type: ignore[prop-decorator]
@@ -135,4 +136,4 @@ class Settings(BaseSettings):
         return self
 
 
-settings = Settings()
+settings = Settings()  # type: ignore[call-arg]

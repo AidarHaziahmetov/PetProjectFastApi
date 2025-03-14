@@ -45,4 +45,3 @@ class User(SQLModel, table=True):  # или SQLModel вместо LoggableModel
     # )
     # representative: Optional["Representative"] = Relationship(back_populates="user")
     # comments: list["Comment"] = Relationship(back_populates="user")
-
