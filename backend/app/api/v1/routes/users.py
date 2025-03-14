@@ -17,7 +17,7 @@ from app.crud.user import (
     update_user,
 )
 from app.models.user import User
-from app.schemas.common import Message
+from app.schemas.common import ApiMessage
 from app.schemas.user import (
     UpdatePassword,
     UserCreate,
@@ -99,7 +99,7 @@ async def update_user_me(
     return current_user
 
 
-@router.patch("/me/password", response_model=Message)
+@router.patch("/me/password", response_model=ApiMessage)
 async def update_password_me(
     *, session: AsyncSessionDep, body: UpdatePassword, current_user: CurrentUserAsync
 ) -> Any:
@@ -116,7 +116,7 @@ async def update_password_me(
     current_user.hashed_password = hashed_password
     session.add(current_user)
     await session.commit()
-    return Message(message="Password updated successfully")
+    return ApiMessage(message="Password updated successfully")
 
 
 @router.get("/me", response_model=UserPublic)
@@ -127,7 +127,7 @@ def read_user_me(current_user: CurrentUserAsync) -> Any:
     return current_user
 
 
-@router.delete("/me", response_model=Message)
+@router.delete("/me", response_model=ApiMessage)
 async def delete_user_me(
     session: AsyncSessionDep, current_user: CurrentUserAsync
 ) -> Any:
@@ -140,7 +140,7 @@ async def delete_user_me(
         )
     await session.delete(current_user)
     await session.commit()
-    return Message(message="User deleted successfully")
+    return ApiMessage(message="User deleted successfully")
 
 
 @router.post("/signup", response_model=UserPublic)
@@ -210,7 +210,7 @@ async def update_user_by_id(
 @router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
 async def delete_user(
     session: AsyncSessionDep, current_user: CurrentUserAsync, user_id: uuid.UUID
-) -> Message:
+) -> ApiMessage:
     """
     Delete a user.
     """
@@ -223,4 +223,4 @@ async def delete_user(
         )
     await session.delete(user)
     await session.commit()
-    return Message(message="User deleted successfully")
+    return ApiMessage(message="User deleted successfully")

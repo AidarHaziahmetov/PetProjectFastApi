@@ -97,6 +97,22 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER: str
     FIRST_SUPERUSER_PASSWORD: str
 
+    REDIS_HOST: str = "redis"
+    REDIS_PORT: int = 6379
+    REDIS_PASSWORD: str = ""
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def CELERY_BROKER_URL(self) -> str:
+        if self.REDIS_PASSWORD:
+            return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/0"
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def CELERY_RESULT_BACKEND(self) -> str:
+        return self.CELERY_BROKER_URL
+
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
             message = (

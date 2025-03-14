@@ -14,12 +14,10 @@ from app.core.config import settings
 from app.core.security import create_access_token, get_password_hash
 from app.crud.user import authenticate, get_user_by_email
 from app.schemas.auth import NewPassword, Token
-from app.schemas.common import Message
+from app.schemas.common import ApiMessage
 from app.schemas.user import UserPublic
-from app.utils.email import (
-    generate_reset_password_email,
-    send_email,
-)
+from app.tasks.email import send_reset_password_email_task
+from app.utils.email import generate_reset_password_email
 from app.utils.security import (
     generate_password_reset_token,
     verify_password_reset_token,
@@ -61,7 +59,7 @@ def test_token(current_user: CurrentUserAsync) -> Any:
 
 
 @router.post("/password-recovery/{email}")
-async def recover_password(email: str, session: AsyncSessionDep) -> Message:
+async def recover_password(email: str, session: AsyncSessionDep) -> ApiMessage:
     """
     Password Recovery
     """
@@ -73,19 +71,16 @@ async def recover_password(email: str, session: AsyncSessionDep) -> Message:
             detail="The user with this email does not exist in the system.",
         )
     password_reset_token = generate_password_reset_token(email=email)
-    email_data = generate_reset_password_email(
-        email_to=user.email, email=email, token=password_reset_token
-    )
-    send_email(
+    send_reset_password_email_task.delay(
         email_to=user.email,
-        subject=email_data.subject,
-        html_content=email_data.html_content,
+        email=email,
+        token=password_reset_token,
     )
-    return Message(message="Password recovery email sent")
+    return ApiMessage(message="Password recovery email sent")
 
 
 @router.post("/reset-password/")
-async def reset_password(session: AsyncSessionDep, body: NewPassword) -> Message:
+async def reset_password(session: AsyncSessionDep, body: NewPassword) -> ApiMessage:
     """
     Reset password
     """
@@ -104,7 +99,7 @@ async def reset_password(session: AsyncSessionDep, body: NewPassword) -> Message
     user.hashed_password = hashed_password
     session.add(user)
     await session.commit()
-    return Message(message="Password updated successfully")
+    return ApiMessage(message="Password updated successfully")
 
 
 @router.post(
