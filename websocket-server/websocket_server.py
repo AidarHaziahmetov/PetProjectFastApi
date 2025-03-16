@@ -11,6 +11,7 @@ import websockets
 from websockets.exceptions import ConnectionClosedOK
 from typing import Any
 
+
 async def handle_websocket(websocket: Any) -> None:
     try:
         async for message in websocket:
@@ -23,10 +24,12 @@ async def handle_websocket(websocket: Any) -> None:
     except ConnectionClosedOK:
         print(f"WebSocket {websocket.remote_address} connection closed")
 
+
 async def main() -> None:
     print("Starting websocket server...")
     async with websockets.serve(handle_websocket, "0.0.0.0", 8765):
         print("Websocket server started on ws://0.0.0.0:8765")
         await asyncio.Future()  # run forever
+
 
 asyncio.run(main())
