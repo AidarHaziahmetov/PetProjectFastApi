@@ -4,6 +4,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
+
 async def run_client():
     uri = "ws://localhost:8765"
     reconnect_delay = 3  # начальная задержка перед повторной попыткой
@@ -19,12 +20,21 @@ async def run_client():
                     message = await websocket.recv()
                     logging.info("Получено сообщение: %s", message)
         except (websockets.exceptions.ConnectionClosed, ConnectionRefusedError) as e:
-            logging.error("Соединение потеряно: %s. Пытаемся переподключиться через %s секунд...", e, reconnect_delay)
+            logging.error(
+                "Соединение потеряно: %s. Пытаемся переподключиться через %s секунд...",
+                e,
+                reconnect_delay,
+            )
             await asyncio.sleep(reconnect_delay)
             # При необходимости можно увеличить задержку для экспоненциального бэкафа
         except Exception as e:
-            logging.error("Произошла ошибка: %s. Пытаемся переподключиться через %s секунд...", e, reconnect_delay)
+            logging.error(
+                "Произошла ошибка: %s. Пытаемся переподключиться через %s секунд...",
+                e,
+                reconnect_delay,
+            )
             await asyncio.sleep(reconnect_delay)
 
+
 if __name__ == "__main__":
-    asyncio.run(run_client()) 
+    asyncio.run(run_client())
