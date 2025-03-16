@@ -1,5 +1,6 @@
 FROM python:3.13
 
+# Отключаем буферизацию вывода Python, чтобы видеть логи в реальном времени в Docker
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app/

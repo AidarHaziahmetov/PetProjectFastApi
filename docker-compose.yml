@@ -164,6 +164,7 @@ services:
       - SENTRY_DSN=${SENTRY_DSN}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
       interval: 10s
@@ -171,6 +172,9 @@ services:
       retries: 5
     build:
       context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
@@ -183,6 +187,18 @@ services:
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.tls=true
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.tls.certresolver=le
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.middlewares=https-redirect
+
+  websocket:
+    build:
+      context: ./websocket-server
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_URL=redis://redis:6379
+
 
   # frontend:
   #   image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'
