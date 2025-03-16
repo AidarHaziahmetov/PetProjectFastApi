@@ -1,28 +1,27 @@
 FROM python:3.13
 
-# Отключаем буферизацию вывода Python, чтобы видеть логи в реальном времени в Docker
-ENV PYTHONUNBUFFERED=1
+WORKDIR /app
 
-WORKDIR /app/
+# Устанавливаем setuptools, который предоставляет альтернативу distutils
+
+COPY pyproject.toml uv.lock ./
 
 # Install uv
-# Ref: https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # Place executables in the environment at the front of the path
-# Ref: https://docs.astral.sh/uv/guides/integration/docker/#using-the-environment
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Compile bytecode
-# Ref: https://docs.astral.sh/uv/guides/integration/docker/#compiling-bytecode
 ENV UV_COMPILE_BYTECODE=1
 
 # uv Cache
-# Ref: https://docs.astral.sh/uv/guides/integration/docker/#caching
 ENV UV_LINK_MODE=copy
 
 # Install dependencies
-# Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
-COPY ./ /app/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-install-project
 
-CMD ["uv", "run", "websocket_server.py"]
+COPY . .
+
+CMD ["uvicorn", "websocket_server:app", "--host", "0.0.0.0", "--port", "8000"]

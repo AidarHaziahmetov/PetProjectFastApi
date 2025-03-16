@@ -164,6 +164,7 @@ services:
       - SENTRY_DSN=${SENTRY_DSN}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
       interval: 10s
@@ -171,6 +172,9 @@ services:
       retries: 5
     build:
       context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
@@ -184,50 +188,17 @@ services:
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.tls.certresolver=le
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.middlewares=https-redirect
 
-  websocket-server:
-    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
-    restart: always
-    networks:
-      - traefik-public
-      - default
+  websocket:
+    build:
+      context: ./websocket-server
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
     depends_on:
-      db:
-        condition: service_healthy
-        restart: true
-      redis:
-        condition: service_healthy
-        restart: true
-    env_file:
-      - .env
+      - redis
     environment:
-      - DOMAIN=${DOMAIN}
-      - ENVIRONMENT=${ENVIRONMENT}
-      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
-      - SECRET_KEY=${SECRET_KEY?Variable not set}
-      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
-      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
-      - POSTGRES_SERVER=db
-      - POSTGRES_PORT=${POSTGRES_PORT}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
-      - SENTRY_DSN=${SENTRY_DSN}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - WEBSOCKET_PORT=${WEBSOCKET_PORT}
-    command: uvicorn app.websocket:app --host 0.0.0.0 --port ${WEBSOCKET_PORT}
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=traefik-public
-      - traefik.constraint-label=traefik-public
-      - traefik.http.services.${STACK_NAME?Variable not set}-websocket.loadbalancer.server.port=${WEBSOCKET_PORT}
-      - traefik.http.routers.${STACK_NAME?Variable not set}-websocket-http.rule=Host(`ws.${DOMAIN?Variable not set}`)
-      - traefik.http.routers.${STACK_NAME?Variable not set}-websocket-http.entrypoints=http
-      - traefik.http.routers.${STACK_NAME?Variable not set}-websocket-http.middlewares=https-redirect
-      - traefik.http.routers.${STACK_NAME?Variable not set}-websocket-https.rule=Host(`ws.${DOMAIN?Variable not set}`)
-      - traefik.http.routers.${STACK_NAME?Variable not set}-websocket-https.entrypoints=https
-      - traefik.http.routers.${STACK_NAME?Variable not set}-websocket-https.tls=true
-      - traefik.http.routers.${STACK_NAME?Variable not set}-websocket-https.tls.certresolver=le
+      - REDIS_URL=redis://redis:6379
+
 
   # frontend:
   #   image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'

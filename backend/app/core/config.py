@@ -99,6 +99,7 @@ class Settings(BaseSettings):
     REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
     REDIS_PASSWORD: str = ""
+    REDIS_URL: str = "redis://redis:6379"
 
     @computed_field  # type: ignore[prop-decorator]
     @property
