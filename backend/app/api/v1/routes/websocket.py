@@ -83,7 +83,7 @@ async def send_message(
             "type": message.type,
             "content": message.content,
             "sender": {
-                "id": user.id,
+                "id": str(user.id),
                 "email": user.email,
                 "is_superuser": user.is_superuser,
             },
