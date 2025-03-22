@@ -50,6 +50,11 @@ async def get_current_user_async(session: AsyncSessionDep, token: TokenDep) -> U
 CurrentUserAsync = Annotated[User, Depends(get_current_user_async)]
 
 
+async def get_current_active_user(current_user: CurrentUserAsync) -> User:
+    """Зависимость для получения текущего активного пользователя"""
+    return current_user
+
+
 async def get_current_active_superuser(current_user: CurrentUserAsync) -> User:
     if not current_user.is_superuser:
         raise HTTPException(

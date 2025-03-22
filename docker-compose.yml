@@ -1,7 +1,7 @@
 services:
 
   db:
-    image: postgres:12
+    image: postgres:16
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
@@ -63,10 +63,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-        restart: true
       redis:
         condition: service_healthy
-        restart: true
     env_file:
       - .env
     environment:
@@ -101,10 +99,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-        restart: true
       redis:
         condition: service_healthy
-        restart: true
     command: bash scripts/prestart.sh
     env_file:
       - .env
@@ -136,10 +132,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-        restart: true
       redis:
         condition: service_healthy
-        restart: true
       prestart:
         condition: service_completed_successfully
     env_file:
@@ -173,8 +167,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
+    # Не указываем порты здесь, так как traefik будет обрабатывать запросы
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
@@ -187,18 +180,55 @@ services:
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.tls=true
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.tls.certresolver=le
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.middlewares=https-redirect
+    deploy:
+      mode: replicated
+      replicas: ${BACKEND_REPLICAS:-1}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
 
   websocket:
     build:
       context: ./websocket-server
       dockerfile: Dockerfile
-    ports:
-      - "8001:8000"
+    restart: always
+    networks:
+      - traefik-public
+      - default
     depends_on:
       - redis
     environment:
       - REDIS_URL=redis://redis:6379
-
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+      - traefik.http.services.${STACK_NAME?Variable not set}-websocket.loadbalancer.server.port=8000
+      - traefik.http.routers.${STACK_NAME?Variable not set}-websocket-http.rule=Host(`ws.${DOMAIN?Variable not set}`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-websocket-http.entrypoints=http
+      - traefik.http.routers.${STACK_NAME?Variable not set}-websocket-http.middlewares=https-redirect
+      - traefik.http.routers.${STACK_NAME?Variable not set}-websocket-https.rule=Host(`ws.${DOMAIN?Variable not set}`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-websocket-https.entrypoints=https
+      - traefik.http.routers.${STACK_NAME?Variable not set}-websocket-https.tls=true
+      - traefik.http.routers.${STACK_NAME?Variable not set}-websocket-https.tls.certresolver=le
+      # Конфигурация для стики сессий (сохранение сессии на одном сервере)
+      - traefik.http.services.${STACK_NAME?Variable not set}-websocket.loadbalancer.sticky=true
+      - traefik.http.services.${STACK_NAME?Variable not set}-websocket.loadbalancer.sticky.cookie.name=websocket_sticky
+      - traefik.http.services.${STACK_NAME?Variable not set}-websocket.loadbalancer.sticky.cookie.secure=true
+      - traefik.http.services.${STACK_NAME?Variable not set}-websocket.loadbalancer.sticky.cookie.httponly=true
+    deploy:
+      mode: replicated
+      replicas: ${WEBSOCKET_REPLICAS:-1}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
 
   # frontend:
   #   image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'
