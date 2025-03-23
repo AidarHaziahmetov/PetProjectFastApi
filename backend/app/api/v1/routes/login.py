@@ -11,8 +11,8 @@ from app.api.v1.deps import (
     get_current_active_superuser,
 )
 from app.core.config import settings
-from app.core.security import create_access_token, get_password_hash
-from app.crud.user import authenticate, get_user_by_email
+from app.core.security import create_access_token
+from app.repositories.user import UserRepository
 from app.schemas.auth import NewPassword, Token
 from app.schemas.common import ApiMessage
 from app.schemas.user import UserPublic
@@ -33,8 +33,8 @@ async def login_access_token(
     """
     OAuth2 compatible token login, get an access token for future requests
     """
-    user = await authenticate(
-        session=session, email=form_data.username, password=form_data.password
+    user = await UserRepository(session=session).authenticate(
+        email=form_data.username, password=form_data.password
     )
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
@@ -44,7 +44,6 @@ async def login_access_token(
     token = Token(
         access_token=create_access_token(user.id, expires_delta=access_token_expires)
     )
-    print(token)
     return token
 
 
@@ -61,7 +60,7 @@ async def recover_password(email: str, session: AsyncSessionDep) -> ApiMessage:
     """
     Password Recovery
     """
-    user = await get_user_by_email(session=session, email=email)
+    user = await UserRepository(session=session).get_by_email(email=email)
 
     if not user:
         raise HTTPException(
@@ -85,7 +84,7 @@ async def reset_password(session: AsyncSessionDep, body: NewPassword) -> ApiMess
     email = verify_password_reset_token(token=body.token)
     if not email:
         raise HTTPException(status_code=400, detail="Invalid token")
-    user = await get_user_by_email(session=session, email=email)
+    user = await UserRepository(session=session).get_by_email(email=email)
     if not user:
         raise HTTPException(
             status_code=404,
@@ -93,10 +92,8 @@ async def reset_password(session: AsyncSessionDep, body: NewPassword) -> ApiMess
         )
     elif not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
-    hashed_password = get_password_hash(password=body.new_password)
-    user.hashed_password = hashed_password
-    session.add(user)
-    await session.commit()
+    user.password = body.new_password
+    await UserRepository(session=session).update(user=user)
     return ApiMessage(message="Password updated successfully")
 
 
@@ -109,7 +106,7 @@ async def recover_password_html_content(email: str, session: AsyncSessionDep) ->
     """
     HTML Content for Password Recovery
     """
-    user = await get_user_by_email(session=session, email=email)
+    user = await UserRepository(session=session).get_by_email(email=email)
 
     if not user:
         raise HTTPException(

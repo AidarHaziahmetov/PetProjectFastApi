@@ -61,10 +61,8 @@ services:
     networks:
       - default
     depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - db
+      - redis
     env_file:
       - .env
     environment:
@@ -97,10 +95,8 @@ services:
       - traefik-public
       - default
     depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - db
+      - redis
     command: bash scripts/prestart.sh
     env_file:
       - .env
@@ -130,12 +126,9 @@ services:
       - traefik-public
       - default
     depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      prestart:
-        condition: service_completed_successfully
+      - db
+      - redis
+      - prestart
     env_file:
       - .env
     environment:
@@ -167,7 +160,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    # Не указываем порты здесь, так как traefik будет обрабатывать запросы
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik-public
@@ -180,17 +172,21 @@ services:
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.tls=true
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.tls.certresolver=le
       - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.middlewares=https-redirect
+      - traefik.http.services.${STACK_NAME?Variable not set}-backend.loadbalancer.sticky=true
+      - traefik.http.services.${STACK_NAME?Variable not set}-backend.loadbalancer.sticky.cookie.name=backend_sticky
+      - traefik.http.services.${STACK_NAME?Variable not set}-backend.loadbalancer.sticky.cookie.secure=true
     deploy:
       mode: replicated
-      replicas: ${BACKEND_REPLICAS:-1}
+      replicas: ${BACKEND_REPLICAS:-2}
       update_config:
         parallelism: 1
         delay: 10s
         order: start-first
 
   websocket:
+    image: '${DOCKER_IMAGE_WEBSOCKET?Variable not set}:${TAG-latest}'
     build:
-      context: ./websocket-server
+      context: ./websocket
       dockerfile: Dockerfile
     restart: always
     networks:
