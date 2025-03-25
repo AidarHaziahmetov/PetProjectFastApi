@@ -75,4 +75,4 @@ class BaseRepository(Generic[ModelType]):
 
         query = query.offset(skip).limit(limit)
         result = await self.session.exec(query)
-        return result.all()
+        return list(result.all())

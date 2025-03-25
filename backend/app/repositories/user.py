@@ -1,3 +1,6 @@
+from uuid import UUID
+
+from sqlalchemy import delete
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -33,6 +36,32 @@ class UserRepository(BaseRepository[User]):
         await self.session.refresh(db_user)
         return db_user
 
+    async def get_by_email(self, email: str) -> User | None:
+        query = select(self.model).where(self.model.email == email)
+        result = await self.session.exec(query)
+        return result.one_or_none()
+
+    async def get_by_id(self, id: UUID) -> User | None:
+        query = select(self.model).where(self.model.id == id)
+        result = await self.session.exec(query)
+        return result.one_or_none()
+
+    async def list(
+        self, skip: int | None = None, limit: int | None = None
+    ) -> list[User]:
+        query = select(self.model)
+        if skip is not None:
+            query = query.offset(skip)
+        if limit is not None:
+            query = query.limit(limit)
+        result = await self.session.exec(query)
+        return list(result.all())
+
+    async def delete(self, id: UUID) -> None:
+        query = delete(self.model).where(self.model.id == id)  # type: ignore
+        await self.session.exec(query)  # type: ignore
+        await self.session.commit()
+
     async def authenticate(self, email: str, password: str) -> User | None:
         """Асинхронная аутентификация пользователя"""
         db_user = await self.get_by_email(email=email)
@@ -41,8 +70,3 @@ class UserRepository(BaseRepository[User]):
         if not verify_password(password, db_user.hashed_password):
             return None
         return db_user
-
-    async def get_by_email(self, email: str) -> User | None:
-        query = select(self.model).where(self.model.email == email)
-        result = await self.session.exec(query)
-        return result.one_or_none()

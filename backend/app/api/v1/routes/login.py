@@ -15,7 +15,7 @@ from app.core.security import create_access_token
 from app.repositories.user import UserRepository
 from app.schemas.auth import NewPassword, Token
 from app.schemas.common import ApiMessage
-from app.schemas.user import UserPublic
+from app.schemas.user import UserPublic, UserUpdate
 from app.tasks.email import send_reset_password_email_task
 from app.utils.email import generate_reset_password_email
 from app.utils.security import (
@@ -92,8 +92,8 @@ async def reset_password(session: AsyncSessionDep, body: NewPassword) -> ApiMess
         )
     elif not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
-    user.password = body.new_password
-    await UserRepository(session=session).update(user=user)
+    user_update = UserUpdate(password=body.new_password)
+    await UserRepository(session=session).update(db_user=user, user=user_update)
     return ApiMessage(message="Password updated successfully")
 
 

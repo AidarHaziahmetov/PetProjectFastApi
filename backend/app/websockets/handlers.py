@@ -47,7 +47,7 @@ class ErrorHandler:
 
 
 class WebSocketMessageRouter:
-    def __init__(self):
+    def __init__(self) -> None:
         self.handlers: dict[str, WebSocketHandler] = {
             "chat_message": ChatMessageHandler(),
             "status_update": StatusUpdateHandler(),

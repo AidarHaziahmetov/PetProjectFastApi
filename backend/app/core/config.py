@@ -116,7 +116,7 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def s3_enabled(self) -> bool:
-        return (
+        return bool(
             self.USE_S3
             and self.S3_ENDPOINT_URL
             and self.S3_ACCESS_KEY

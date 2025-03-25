@@ -117,10 +117,10 @@ class S3FileStorage(FileStorage):
 
     def __init__(
         self,
-        endpoint_url: str = settings.S3_ENDPOINT_URL,
-        access_key: str = settings.S3_ACCESS_KEY,
-        secret_key: str = settings.S3_SECRET_KEY,
-        bucket_name: str = settings.S3_BUCKET_NAME,
+        endpoint_url: str | None = settings.S3_ENDPOINT_URL,
+        access_key: str | None = settings.S3_ACCESS_KEY,
+        secret_key: str | None = settings.S3_SECRET_KEY,
+        bucket_name: str | None = settings.S3_BUCKET_NAME,
         region: str | None = settings.S3_REGION,
     ):
         if not S3_AVAILABLE:
