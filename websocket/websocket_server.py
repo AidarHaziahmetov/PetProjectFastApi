@@ -122,9 +122,9 @@ class ConnectionManager:
             await self.active_connections[client_id].send_text(message)
             # Обновляем время последней активности
             if client_id in self.connection_metadata:
-                self.connection_metadata[client_id][
-                    "last_activity"
-                ] = datetime.now().isoformat()
+                self.connection_metadata[client_id]["last_activity"] = (
+                    datetime.now().isoformat()
+                )
                 await self.update_session_info(client_id)
             return True
         return False
