@@ -302,7 +302,7 @@ async def get_websocket_servers_status() -> list[dict[str, Any]]:
         collector_task = asyncio.create_task(collect_responses())
         try:
             await asyncio.wait_for(asyncio.shield(collector_task), timeout=timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             pass
         finally:
             collector_task.cancel()

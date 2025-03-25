@@ -18,7 +18,7 @@ async_session = async_sessionmaker(
 #         await conn.run_sync(SQLModel.metadata.create_all)
 
 
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
+async def get_session() -> AsyncGenerator[AsyncSession]:
     async with async_session() as session:
         try:
             yield session

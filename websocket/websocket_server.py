@@ -6,7 +6,7 @@ import uuid
 from contextlib import asynccontextmanager
 import logging
 from datetime import datetime
-from typing import Dict, Any, Optional, List
+from typing import Any
 import os
 import jwt
 from jwt.exceptions import InvalidTokenError
@@ -29,7 +29,7 @@ class TokenPayload(BaseModel):
     exp: int
 
 
-async def decode_token(token: str) -> Optional[Dict[str, Any]]:
+async def decode_token(token: str) -> dict[str, Any] | None:
     """Декодирует и верифицирует JWT токен"""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -61,15 +61,15 @@ redis = Redis.from_url("redis://redis:6379")
 
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: Dict[str, WebSocket] = {}
-        self.connection_metadata: Dict[str, Dict[str, str]] = {}
-        self.user_connections: Dict[
-            str, List[str]
+        self.active_connections: dict[str, WebSocket] = {}
+        self.connection_metadata: dict[str, dict[str, str]] = {}
+        self.user_connections: dict[
+            str, list[str]
         ] = {}  # user_id -> list of client_ids
         self.server_id = SERVER_ID
 
     async def connect(
-        self, client_id: str, websocket: WebSocket, user_id: Optional[str] = None
+        self, client_id: str, websocket: WebSocket, user_id: str | None = None
     ):
         await websocket.accept()
         self.active_connections[client_id] = websocket
@@ -129,7 +129,7 @@ class ConnectionManager:
             return True
         return False
 
-    async def send_to_user(self, user_id: str, message: str) -> List[str]:
+    async def send_to_user(self, user_id: str, message: str) -> list[str]:
         """Отправляет сообщение всем соединениям пользователя на этом сервере"""
         sent_to_clients = []
         if user_id in self.user_connections:
@@ -147,7 +147,7 @@ class ConnectionManager:
                 json.dumps(self.connection_metadata[client_id]),
             )  # type: ignore
 
-    def get_all_sessions(self) -> Dict[str, Any]:
+    def get_all_sessions(self) -> dict[str, Any]:
         """Возвращает количество активных соединений на этом сервере"""
         return {
             "server_id": SERVER_ID,
@@ -287,7 +287,7 @@ async def redis_subscriber() -> None:
 
 @app.websocket("/{client_id}")
 async def websocket_endpoint(
-    websocket: WebSocket, client_id: str, token: Optional[str] = Query(None)
+    websocket: WebSocket, client_id: str, token: str | None = Query(None)
 ):
     user_id = None
 

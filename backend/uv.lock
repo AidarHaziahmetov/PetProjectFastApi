@@ -57,6 +57,7 @@ dependencies = [
     { name = "alembic" },
     { name = "asyncpg" },
     { name = "bcrypt" },
+    { name = "boto3" },
     { name = "celery" },
     { name = "email-validator" },
     { name = "emails" },
@@ -71,7 +72,6 @@ dependencies = [
     { name = "python-multipart" },
     { name = "redis", extra = ["hiredis"] },
     { name = "sentry-sdk", extra = ["fastapi"] },
-    { name = "setuptools" },
     { name = "sqlmodel" },
     { name = "tenacity" },
 ]
@@ -91,6 +91,7 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.15.1" },
     { name = "asyncpg", specifier = ">=0.30.0" },
     { name = "bcrypt", specifier = "==4.0.1" },
+    { name = "boto3", specifier = ">=1.37.19" },
     { name = "celery", specifier = ">=5.4.0" },
     { name = "email-validator", specifier = ">=2.2.0" },
     { name = "emails", specifier = ">=0.6" },
@@ -105,7 +106,6 @@ requires-dist = [
     { name = "python-multipart", specifier = ">=0.0.20" },
     { name = "redis", extras = ["hiredis"], specifier = ">=5.2.1" },
     { name = "sentry-sdk", extras = ["fastapi"], specifier = ">=2.22.0" },
-    { name = "setuptools", specifier = ">=76.0.0" },
     { name = "sqlmodel", specifier = ">=0.0.24" },
     { name = "tenacity", specifier = ">=9.0.0" },
 ]
@@ -162,6 +162,34 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/7c/58/1546c970afcd2a2428b1bfafecf2371d8951cc34b46701bea73f4280989e/billiard-4.2.1.tar.gz", hash = "sha256:12b641b0c539073fc8d3f5b8b7be998956665c4233c7c1fcd66a7e677c4fb36f", size = 155031 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/30/da/43b15f28fe5f9e027b41c539abc5469052e9d48fd75f8ff094ba2a0ae767/billiard-4.2.1-py3-none-any.whl", hash = "sha256:40b59a4ac8806ba2c2369ea98d876bc6108b051c227baffd928c644d15d8f3cb", size = 86766 },
+]
+
+[[package]]
+name = "boto3"
+version = "1.37.19"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "botocore" },
+    { name = "jmespath" },
+    { name = "s3transfer" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c2/03/43244d4c6b67f34a979d2805ebb4f63c29b9aef3683ad179470fea52a5f3/boto3-1.37.19.tar.gz", hash = "sha256:c69c90500f18fd72d782d1612170b7d3db9a98ed51a4da3bebe38e693497ebf8", size = 111363 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e6/bb/7f3d90cc732c8c2f0dc971fa910b601f3c9bbe56df518f037653baf8ade3/boto3-1.37.19-py3-none-any.whl", hash = "sha256:fbfc2c43ad686b63c8aa02aee634c269f856eed68941d8e570cc45950be52130", size = 139560 },
+]
+
+[[package]]
+name = "botocore"
+version = "1.37.19"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "jmespath" },
+    { name = "python-dateutil" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a5/4a/cf22a677045a02cf769d8126ce25572695508e4bd5d7f6fe984dc5d23c76/botocore-1.37.19.tar.gz", hash = "sha256:eadcdc37de09df25cf1e62e8106660c61f60a68e984acfc1a8d43fb6267e53b8", size = 13667634 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b4/10/f2482186a83deb8fc45cf46e5455e501e0b2db9565251e66998a80b89aaf/botocore-1.37.19-py3-none-any.whl", hash = "sha256:6e1337e73a6b8146c1ec20a6a72d67e2809bd4c0af076431fe6e1561e0c89415", size = 13429649 },
 ]
 
 [[package]]
@@ -586,6 +614,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/df/bf/f7da0350254c0ed7c72f3e33cef02e048281fec7ecec5f032d4aac52226b/jinja2-3.1.6.tar.gz", hash = "sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d", size = 245115 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl", hash = "sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67", size = 134899 },
+]
+
+[[package]]
+name = "jmespath"
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/00/2a/e867e8531cf3e36b41201936b7fa7ba7b5702dbef42922193f05c8976cd6/jmespath-1.0.1.tar.gz", hash = "sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe", size = 25843 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl", hash = "sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980", size = 20256 },
 ]
 
 [[package]]
@@ -1052,6 +1089,18 @@ wheels = [
 ]
 
 [[package]]
+name = "s3transfer"
+version = "0.11.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "botocore" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0f/ec/aa1a215e5c126fe5decbee2e107468f51d9ce190b9763cb649f76bb45938/s3transfer-0.11.4.tar.gz", hash = "sha256:559f161658e1cf0a911f45940552c696735f5c74e64362e515f333ebed87d679", size = 148419 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/86/62/8d3fc3ec6640161a5649b2cddbbf2b9fa39c92541225b33f117c37c5a2eb/s3transfer-0.11.4-py3-none-any.whl", hash = "sha256:ac265fa68318763a03bf2dc4f39d5cbd6a9e178d81cc9483ad27da33637e320d", size = 84412 },
+]
+
+[[package]]
 name = "sentry-sdk"
 version = "2.22.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1067,15 +1116,6 @@ wheels = [
 [package.optional-dependencies]
 fastapi = [
     { name = "fastapi" },
-]
-
-[[package]]
-name = "setuptools"
-version = "76.0.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/32/d2/7b171caf085ba0d40d8391f54e1c75a1cda9255f542becf84575cfd8a732/setuptools-76.0.0.tar.gz", hash = "sha256:43b4ee60e10b0d0ee98ad11918e114c70701bc6051662a9a675a0496c1a158f4", size = 1349387 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/37/66/d2d7e6ad554f3a7c7297c3f8ef6e22643ad3d35ef5c63bf488bc89f32f31/setuptools-76.0.0-py3-none-any.whl", hash = "sha256:199466a166ff664970d0ee145839f5582cb9bca7a0a3a2e795b6a9cb2308e9c6", size = 1236106 },
 ]
 
 [[package]]

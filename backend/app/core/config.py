@@ -1,7 +1,7 @@
 import secrets
 import uuid
 import warnings
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import (
     AnyUrl,
@@ -12,7 +12,6 @@ from pydantic import (
     model_validator,
 )
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing_extensions import Self
 
 
 def parse_cors(v: Any) -> list[str] | str:
@@ -104,6 +103,26 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
     REDIS_PASSWORD: str = ""
     REDIS_URL: str = "redis://redis:6379"
+
+    # File storage settings
+    USE_S3: bool = False
+    S3_ENDPOINT_URL: str | None = None
+    S3_ACCESS_KEY: str | None = None
+    S3_SECRET_KEY: str | None = None
+    S3_BUCKET_NAME: str | None = None
+    S3_REGION: str | None = None
+    LOCAL_STORAGE_PATH: str = "uploads"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def s3_enabled(self) -> bool:
+        return (
+            self.USE_S3
+            and self.S3_ENDPOINT_URL
+            and self.S3_ACCESS_KEY
+            and self.S3_SECRET_KEY
+            and self.S3_BUCKET_NAME
+        )
 
     @computed_field  # type: ignore[prop-decorator]
     @property
