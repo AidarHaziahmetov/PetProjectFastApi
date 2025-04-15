@@ -11,18 +11,8 @@ from app.api.v1.deps import (
 )
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
-from app.crud.user import (
-    create_user,
-    get_user_by_email,
-    update_user,
-)
-from app.crud.user import (
-    read_user_by_id as read_user_by_id_crud,
-)
-from app.crud.user import (
-    read_users as read_users_crud,
-)
 from app.models.user import User
+from app.repositories.user import UserRepository
 from app.schemas.common import ApiMessage
 from app.schemas.user import (
     UpdatePassword,
@@ -47,7 +37,7 @@ async def read_users(session: AsyncSessionDep, skip: int = 0, limit: int = 100) 
     """
     Retrieve users.
     """
-    users = await read_users_crud(session=session, skip=skip, limit=limit)
+    users = await UserRepository(session).list(skip=skip, limit=limit)
     count_statement = select(func.count()).select_from(User)
     count = await session.scalar(count_statement)
     users_list = [UserPublic.model_validate(user) for user in users]
@@ -61,14 +51,13 @@ async def create_new_user(*, session: AsyncSessionDep, user_in: UserCreate) -> A
     """
     Create new user.
     """
-    user = await get_user_by_email(session=session, email=user_in.email)
+    user = await UserRepository(session).get_by_email(user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this email already exists in the system.",
         )
-
-    user = await create_user(session=session, user_create=user_in)
+    user = await UserRepository(session).create(user_in)
     if settings.emails_enabled and user_in.email:
         email_data = generate_new_account_email(
             email_to=user_in.email, username=user_in.email, password=user_in.password
@@ -89,7 +78,7 @@ async def update_user_me(
     Update own user.
     """
     if user_in.email:
-        existing_user = await get_user_by_email(session=session, email=user_in.email)
+        existing_user = await UserRepository(session).get_by_email(user_in.email)
         if existing_user and existing_user.id != current_user.id:
             raise HTTPException(
                 status_code=409, detail="User with this email already exists"
@@ -151,14 +140,14 @@ async def register_user(session: AsyncSessionDep, user_in: UserRegister) -> Any:
     """
     Create new user without the need to be logged in.
     """
-    user = await get_user_by_email(session=session, email=user_in.email)
+    user = await UserRepository(session).get_by_email(user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this email already exists in the system",
         )
     user_create = UserCreate.model_validate(user_in)
-    user = await create_user(session=session, user_create=user_create)
+    user = await UserRepository(session).create(user_create)
     return user
 
 
@@ -169,7 +158,7 @@ async def read_user_by_id(
     """
     Get a specific user by id.
     """
-    user = await read_user_by_id_crud(session=session, user_id=user_id)
+    user = await UserRepository(session).get_by_id(user_id)
     if user == current_user:
         return user
     if not current_user.is_superuser:
@@ -201,13 +190,13 @@ async def update_user_by_id(
             detail="The user with this id does not exist in the system",
         )
     if user_in.email:
-        existing_user = await get_user_by_email(session=session, email=user_in.email)
+        existing_user = await UserRepository(session).get_by_email(user_in.email)
         if existing_user and existing_user.id != user_id:
             raise HTTPException(
                 status_code=409, detail="User with this email already exists"
             )
-
-    return await update_user(session=session, db_user=db_user, user_in=user_in)
+    user = await UserRepository(session).update(db_user, user_in)
+    return user
 
 
 @router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
