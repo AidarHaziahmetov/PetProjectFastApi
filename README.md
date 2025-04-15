@@ -1,4 +1,4 @@
-# APP Backend
+# Chat Backend
 
 Бэкенд приложения.
 
